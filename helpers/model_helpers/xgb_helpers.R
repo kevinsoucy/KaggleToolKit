@@ -1,7 +1,14 @@
-make_dmat <- function(ds, target_col){
-  mat <- xgb.DMatrix(data=data.matrix(ds[, -target_col]), 
-                            label=data.matrix(ds[, target_col]))
-  return(mat)
+make_dmat <- function(ds, target_col=FALSE){
+
+  if (target_col !=FALSE){
+    mat <- xgb.DMatrix(data=data.matrix(ds[, -target_col]), 
+                              label=data.matrix(ds[, target_col]))
+    return(mat)
+  }
+
+  if (target_col==FALSE){
+    return(xgb.DMatrix(data=data.matrix(ds)))
+  }
 }
 
 
@@ -208,4 +215,43 @@ cv_mode <- function(input, folds){
 
   return(trained_models)
   
+}
+
+
+ktk_xgb_score <- function(trained, score_me, ensemble_option='none'){
+
+  high_levels <- length(trained)
+  low_levels <- 1
+  all_models <- list()
+  f <- 1
+
+  if (class(trained[[1]]$model_object) == "list"){
+    low_levels <- length(trained[[1]]$model_object)
+
+    # Unlist all models
+    for (h in trained){
+      for (l in h$model_object){
+        all_models[[f]] <- l
+        f <- f + 1
+      }
+    }
+  }
+
+  if (class(trained[[1]]$model_object) == "xgb.Booster"){
+    # Unlist all models
+    for (h in trained){
+      all_models[[f]]<- h$model_object
+      f <- f + 1
+    }
+    
+  }
+
+  store_scores <- matrix(0, nrow=nrow(score_me), ncol=(high_levels*low_levels))
+
+  for (i in seq(1, ncol(store_scores))){
+    store_scores[, i] <- predict(all_models[[i]], make_dmat(score_me))
+  }
+
+  return(store_scores)
+
 }
