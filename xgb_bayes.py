@@ -3,6 +3,7 @@ from bayes_opt import BayesianOptimization
 
 # set md and n est yourself
 
+# Define function to maximize
 def rmseParams(lr, sub, col, al, lamb, gam, md, n):
     parameters = {
         'booster': 'gbtree',
@@ -23,6 +24,7 @@ def rmseParams(lr, sub, col, al, lamb, gam, md, n):
     # Maximize -1 * rmse on test set
     return -1*xgbtesterr
 
+# Set limits on search space for each parameter
 bo = BayesianOptimization(lambda lr, sub, col, al, lamb, gam, md, n: rmseParams(lr, sub, col, al, lamb, gam, md, n),
         {'lr': (.12, .12),
          'sub': (.6, .7),
